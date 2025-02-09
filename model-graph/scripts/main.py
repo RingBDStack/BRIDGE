@@ -427,7 +427,7 @@ def train_model(
                 accs.std().item(),
             ]
             out = open(
-                "{}/NIPS24_{}_graph_fewshot.csv".format(
+                "{}/ICML25_{}_graph_fewshot.csv".format(
                     data_path, args.dataset.lower()
                 ),
                 "a",
