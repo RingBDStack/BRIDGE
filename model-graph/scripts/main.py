@@ -166,11 +166,9 @@ def train_model(
             if is_Reddit:
                 sp_adj5 = sp_adj5.cuda()
     best = 1e9
-    firstbest = 0
     cnt_wait = 0
 
     for epoch in range(args.nb_epochs):
-        loss = 0
         model.train()
         optimiser.zero_grad()
         features_list = [features1, features2, features3, features4]
@@ -189,7 +187,6 @@ def train_model(
         print("Loss:[{:.4f}]".format(loss.item()))
         wandb.log({"pretrain_loss": loss.item()})
         if loss < best:
-            firstbest = 1
             best = loss
             best_t = epoch
             cnt_wait = 0
@@ -256,9 +253,6 @@ def train_model(
     model.load_state_dict(torch.load(args.save_name))
     embeds, _ = model.embed(features, sp_adj if sparse else adj, sparse, None, LP)
     downstreamlrlist = [downstreamlr]
-    acclist = torch.FloatTensor(
-        100,
-    ).cuda()
     xent = nn.CrossEntropyLoss()
     test_embs = embeds[0, testlist]
     config = wandb.config
@@ -273,9 +267,6 @@ def train_model(
             tot = torch.zeros(1)
             tot = tot.cuda()
             accs = []
-            cnt_wait = 0
-            best = 1e9
-            best_t = 0
             print("shotnum", shotnum)
             for i in tqdm(range(args.prompt_times)):
                 masks_logits = model.masks_logits
@@ -325,11 +316,7 @@ def train_model(
                 )
                 opt = torch.optim.Adam([{"params": log.parameters()}], lr=downstreamlr)
                 log = log.cuda()
-                best = 1e9
-                pat_steps = 0
-                best_acc = torch.zeros(1)
-                best_acc = best_acc.cuda()
-                best_acc = 0
+                best_loss = float('inf')
                 cnt_wait = 0
                 for idx_temp in range(args.fw_epochs):
                     log.train()
@@ -356,28 +343,14 @@ def train_model(
                         + reg_weight * reg_loss
                     )
 
-                    logits_test, _, _ = log(
-                        eivec,
-                        eival,
-                        reg_thres,
-                        features,
-                        sp_adj,
-                        sparse,
-                        model.gcn,
-                        testlist,
-                        testindex,
-                        test_embs,
-                    )
-                    preds = torch.argmax(logits_test, dim=1).cuda()
-                    acc = torch.sum(preds == test_lbls).float() / test_lbls.shape[0]
-                    if acc > best_acc:
-                        best_acc = acc
+                    if loss < best_loss:
+                        best_loss = loss
                         cnt_wait = 0
                     else:
                         cnt_wait += 1
                     if cnt_wait == patience:
                         print(
-                            f"Early stopping at iteration {idx_temp + 1} with best accuracy: {best_acc:.4f}"
+                            f"Early stopping at iteration {idx_temp + 1} with best loss: {best_loss:.4f}"
                         )
                         break
                     loss.backward(retain_graph=True)
