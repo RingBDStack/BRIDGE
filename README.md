@@ -31,7 +31,7 @@ pip install -r requirements.txt
 ```
 
 ### Dataset download:
-https://huggingface.co/datasets/icmlsubmission/ICML_Submission_927/blob/main/bridge_data.tar.gz
+https://huggingface.co/datasets/aboutime233/BRIDGE-data/tree/main
 
 ## 2. Quick Start
 
