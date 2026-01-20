@@ -30,12 +30,15 @@ Below are the main dependencies and their version requirements for the project:
 pip install -r requirements.txt
 ```
 
-### Dataset download:
+### Dataset & pretrained weights download:
 https://huggingface.co/datasets/aboutime233/BRIDGE-data/tree/main
+
+This link provides both the dataset archive and the pretrained model weights.
 
 ## 2. Quick Start
 
 Unzip the downloaded dataset archive into a folder named `data` in the root directory of the repository.
+Extract pretrained_models_with_readme.tar.gz into the /scripts/saved_model directory.
 
 ### Pretraining + Fine-tuning
 
